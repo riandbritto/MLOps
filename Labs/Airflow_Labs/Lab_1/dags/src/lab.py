@@ -1,88 +1,99 @@
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.cluster import KMeans
-from kneed import KneeLocator
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
 import pickle
-import os
 import base64
+import os
 
 def load_data():
     """
-    Loads data from a CSV file, serializes it, and returns the serialized data.
-    Returns:
-        str: Base64-encoded serialized data (JSON-safe).
+    Loads the diabetes dataset from CSV, serializes it,
+    and returns a base64-encoded string (XCom-safe).
     """
-    print("We are here")
-    df = pd.read_csv(os.path.join(os.path.dirname(__file__), "../data/file.csv"))
-    serialized_data = pickle.dumps(df)                    # bytes
-    return base64.b64encode(serialized_data).decode("ascii")  # JSON-safe string
+    csv_path = os.path.join(os.path.dirname(__file__), "../data/diabetes.csv")
+    df = pd.read_csv(csv_path)
+    print(f"Loaded dataset with shape: {df.shape}")
+    serialized = pickle.dumps(df)
+    return base64.b64encode(serialized).decode("ascii")
+
 
 def data_preprocessing(data_b64: str):
     """
-    Deserializes base64-encoded pickled data, performs preprocessing,
-    and returns base64-encoded pickled clustered data.
+    Deserializes data, scales features, splits into train/test,
+    and returns serialized splits.
     """
-    # decode -> bytes -> DataFrame
-    data_bytes = base64.b64decode(data_b64)
-    df = pickle.loads(data_bytes)
+    df = pickle.loads(base64.b64decode(data_b64))
 
-    df = df.dropna()
-    clustering_data = df[["BALANCE", "PURCHASES", "CREDIT_LIMIT"]]
+    # Target column
+    X = df.drop(columns=["Outcome"])
+    y = df["Outcome"]
 
-    min_max_scaler = MinMaxScaler()
-    clustering_data_minmax = min_max_scaler.fit_transform(clustering_data)
+    # Scale features
+    scaler = MinMaxScaler()
+    X_scaled = scaler.fit_transform(X)
 
-    # bytes -> base64 string for XCom
-    clustering_serialized_data = pickle.dumps(clustering_data_minmax)
-    return base64.b64encode(clustering_serialized_data).decode("ascii")
+    # Train/test split
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_scaled, y, test_size=0.2, random_state=42
+    )
+
+    print(f"Train size: {X_train.shape}, Test size: {X_test.shape}")
+
+    payload = {
+        "X_train": X_train,
+        "X_test": X_test,
+        "y_train": y_train.values,
+        "y_test": y_test.values,
+    }
+
+    serialized = pickle.dumps(payload)
+    return base64.b64encode(serialized).decode("ascii")
 
 
-def build_save_model(data_b64: str, filename: str):
+def build_save_model(data_b64: str, model_path: str):
     """
-    Builds a KMeans model on the preprocessed data and saves it.
-    Returns the SSE list (JSON-serializable).
+    Trains a Linear Regression model and saves it to disk.
+    Returns the model path.
     """
-    # decode -> bytes -> numpy array
-    data_bytes = base64.b64decode(data_b64)
-    df = pickle.loads(data_bytes)
+    payload = pickle.loads(base64.b64decode(data_b64))
+    X_train = payload["X_train"]
+    y_train = payload["y_train"]
 
-    kmeans_kwargs = {"init": "random", "n_init": 10, "max_iter": 300, "random_state": 42}
-    sse = []
-    for k in range(1, 50):
-        kmeans = KMeans(n_clusters=k, **kmeans_kwargs)
-        kmeans.fit(df)
-        sse.append(kmeans.inertia_)
+    model = LinearRegression()
+    model.fit(X_train, y_train)
 
-    # NOTE: This saves the last-fitted model (k=49), matching your original intent.
-    output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "model")
-    os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, filename)
-    with open(output_path, "wb") as f:
-        pickle.dump(kmeans, f)
+    # Save model
+    save_path = os.path.join(os.path.dirname(__file__), f"../../{model_path}")
+    with open(save_path, "wb") as f:
+        pickle.dump(model, f)
 
-    return sse  # list is JSON-safe
+    print(f"Model saved to: {save_path}")
+    return model_path
 
 
-def load_model_elbow(filename: str, sse: list):
+def load_model_evaluate(model_path: str, data_b64: str):
     """
-    Loads the saved model and uses the elbow method to report k.
-    Returns the first prediction (as a plain int) for test.csv.
+    Loads the saved model and evaluates it on the test set.
+    Prints MSE and R2 score.
     """
-    # load the saved (last-fitted) model
-    output_path = os.path.join(os.path.dirname(__file__), "../model", filename)
-    loaded_model = pickle.load(open(output_path, "rb"))
+    payload = pickle.loads(base64.b64decode(data_b64))
+    X_test = payload["X_test"]
+    y_test = payload["y_test"]
 
-    # elbow for information/logging
-    kl = KneeLocator(range(1, 50), sse, curve="convex", direction="decreasing")
-    print(f"Optimal no. of clusters: {kl.elbow}")
+    load_path = os.path.join(os.path.dirname(__file__), f"../../{model_path}")
+    with open(load_path, "rb") as f:
+        model = pickle.load(f)
 
-    # predict on raw test data (matches your original code)
-    df = pd.read_csv(os.path.join(os.path.dirname(__file__), "../data/test.csv"))
-    pred = loaded_model.predict(df)[0]
+    y_pred = model.predict(X_test)
 
-    # ensure JSON-safe return
-    try:
-        return int(pred)
-    except Exception:
-        # if not numeric, still return a JSON-friendly version
-        return pred.item() if hasattr(pred, "item") else pred
+    mse = mean_squared_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
+
+    print(f"MSE:  {mse:.4f}")
+    print(f"R2:   {r2:.4f}")
+    print(f"Coefficients: {model.coef_}")
+
+    return {"mse": mse, "r2": r2}
