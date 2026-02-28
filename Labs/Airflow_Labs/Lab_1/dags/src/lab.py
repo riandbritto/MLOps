@@ -97,3 +97,23 @@ def load_model_evaluate(model_path: str, data_b64: str):
     print(f"Coefficients: {model.coef_}")
 
     return {"mse": mse, "r2": r2}
+
+    Links:
+    http://localhost:8080/dags/Airflow_Lab1_Diabetes/runs
+    http://localhost:8080/dags/Airflow_Lab1_Diabetes/events
+    http://localhost:8080/dags/Airflow_Lab1_Diabetes
+
+Airflow Lab 1 — Diabetes Prediction Pipeline
+For this lab, I swapped out the original dataset and model to make it my own — I used the Diabetes dataset and built a Linear Regression pipeline instead of KMeans clustering. Honestly, getting Airflow running in Docker took more troubleshooting than expected (volume mounts, missing packages, wrong container names) but it was a solid learning experience overall.
+The pipeline has 4 tasks: loading the data, preprocessing it, training the model, and evaluating it — all running sequentially in Airflow.
+Results
+DAG Run — All Tasks Successful
+Graph View
+Model Evaluation Logs
+How to Run
+bashdocker compose up -d
+docker compose exec airflow-apiserver airflow dags trigger Airflow_Lab1_Diabetes
+Then open http://localhost:8080 to watch it run.
+Tech Stack
+
+Apache Airflow 3.1.7 · Docker · Python 3.12 · scikit-learn · pandas
