@@ -1,87 +1,150 @@
-[![pages-build-deployment](https://github.com/raminmohammadi/MLOps/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/raminmohammadi/MLOps/actions/workflows/pages/pages-build-deployment)
+# TFX Feature Engineering Lab — Diabetes Dataset
 
-# DADS 7305 - MLOps
+## What is this lab about?
 
-## Overview
+In this lab, I used **TensorFlow Extended (TFX)** to build a feature engineering pipeline for a medical dataset. Think of a pipeline as an assembly line — raw data goes in one end, and clean, properly formatted data comes out the other end, ready to be used for training a machine learning model.
 
-Welcome to the MLOps Repository! This repository is dedicated to sharing reading contents, labs and exercises for the MLOps (Machine Learning Operations) course at Northeastern University. The primary goal of this repository is to provide a centralized platform for students, instructors, and anyone interested in MLOps to access and collaborate on course-related materials. You can learn more on Machine learning topics by watching my videos on [Youtube](https://www.youtube.com/channel/UCCGbsdfmgmhMLs-tjOtOp0Q) or visit my [Website](https://www.mlwithramin.com/). 
+The original lab used a breast cancer dataset. I swapped it out for the **Diabetes dataset**, which gave me a chance to handle a different kind of problem — instead of predicting yes/no (classification), this dataset predicts a number (regression), which required different preprocessing decisions.
 
-## Table of Contents
+---
 
-- [Introduction](#introduction)
-- [Course Description](#course-description)
-- [Lab Content](#lab-content)
-- [Getting Started](#getting-started)
-- [Contributing](#contributing)
-- [License](#license)
+## The Dataset
 
-## Introduction
+The dataset contains medical information for **442 diabetes patients**. Each patient has 10 features recorded at baseline, and the goal is to predict how much their diabetes progressed one year later.
 
-MLOps is an emerging discipline that focuses on the collaboration and communication of both data scientists and IT professionals while automating and streamlining the machine learning lifecycle. It bridges the gap between machine learning development and production deployment, ensuring that machine learning models are scalable, reproducible, and maintainable. This repository serves as a resource hub for students and instructors of Northeastern University's MLOps course.
+| Feature | What it means |
+|---------|--------------|
+| `age` | Patient's age |
+| `sex` | Patient's sex |
+| `bmi` | Body mass index |
+| `bp` | Average blood pressure |
+| `s1` | Total cholesterol |
+| `s2` | LDL (bad cholesterol) |
+| `s3` | HDL (good cholesterol) |
+| `s4` | Cholesterol/HDL ratio |
+| `s5` | Triglycerides level |
+| `s6` | Blood sugar level |
+| `target` | Disease progression score (this is what we're predicting) |
 
-## Course Description
+One important thing to note — **every single feature here is a number**. There are no text or category-based columns (like "male/female" as text). This is different from the original lab and meant I had to adjust the pipeline accordingly.
 
-The MLOps course at Northeastern University is designed to provide students with a comprehensive understanding of the MLOps field. Throughout the course, students will learn how to:
+---
 
-- Build end-to-end machine learning pipelines
-- Deploy machine learning models to production
-- Monitor and maintain ML systems
-- Implement CI/CD/CM/CT (Continuous Integration/Continuous Deployment/Continuous Monitoring/Continuous Training) for ML
-- Containerize and orchestrate ML workloads
-- Handle data drift and model retraining
-- **Apply LLMOps practices to large language models (LLMs), including evaluation, alignment, monitoring, deployment, and lifecycle management**
+## What I Changed from the Original Lab
 
-This repository hosts the labs, code samples, and documentation related to these topics.
+The original lab was built around a breast cancer dataset that had categorical (text-based) features and a yes/no label. Here's what I changed:
 
-## Labs Content
+| Thing | Original Lab | My Version |
+|-------|-------------|------------|
+| Dataset | Breast cancer | Diabetes |
+| Feature types | Mix of numeric + categorical | All numeric |
+| Prediction type | Classification (yes/no) | Regression (a number) |
+| Label handling | Category encoding | Scale to [0,1] |
+| Bucketization | None | Age and BMI split into 4 groups |
 
-This repository offers a series of hands-on labs designed to enhance your understanding of MLOps and LLMOps concepts. Each lab focuses on a specific aspect of the machine learning lifecycle, providing practical experience with tools and methodologies essential for deploying and managing both traditional ML models and modern LLMs in production environments.  
+The biggest challenge was that the diabetes dataset has **no categorical features at all**, so I had to think carefully about which transformations actually make sense for this data.
 
-Students will gain hands-on experience with:
+---
 
-- Containerization, orchestration, and CI/CD pipelines  
-- ML model monitoring, retraining, and handling data drift  
-- **LLMOps labs for evaluation, monitoring, alignment, and responsible AI practices**  
-- Deployment strategies for large language models at scale  
+## What the Pipeline Does
 
-Each lab is accompanied by detailed instructions and code examples to facilitate hands-on learning. It's recommended to follow the labs sequentially, as concepts build upon each other. For additional resources and support, refer to the [Reading Materials](./Labs/Reading%20Materials) section of this repository.
+Here's what happens to the data when it goes through the pipeline:
 
-## Getting Started
+1. **Most numeric features** (`sex`, `bp`, `s1` through `s6`) get scaled to a range between 0 and 1. This is important because machine learning models work much better when all features are on the same scale — otherwise a feature like blood pressure (which has large numbers) would unfairly dominate over a feature like a ratio (which has small numbers).
 
-To get started with the labs and exercises in this repository, please follow these steps:
+2. **Age and BMI** get split into 4 buckets each. For example, age might be split into young, middle-aged, older, and elderly groups. This can help the model pick up on patterns within age ranges rather than treating age as a purely linear number.
 
-1. Clone this repository to your local machine.
-2. Navigate to the specific lab you are interested in.
-3. Read the lab instructions and review any accompanying documentation.
-4. Follow the provided code samples and examples to complete the lab exercises.
-5. Feel free to explore, modify, and experiment with the code to deepen your understanding.
+3. **The target label** also gets scaled to [0,1] — since we're predicting a continuous value (not a category), this keeps the output in a manageable range for training.
 
-For more detailed information on each lab and prerequisites, please refer to the lab's README or documentation.
+4. **The categorical feature loop is intentionally left empty** — there simply are no text features in this dataset, so nothing needs to be encoded.
 
-## Contributing
+---
 
-Contributions to this repository are welcome! If you are a student or instructor and would like to contribute your own labs, improvements, or corrections, please follow these guidelines:
+## Project Structure
 
-1. Fork this repository.
-2. Create a branch for your changes.
-3. Make your changes and commit them with clear, concise messages.
-4. Test your changes to ensure they work as expected.
-5. Submit a pull request to the main repository.
+```
+TFX_Lab1/
+├── census_constants.py       # All feature names and settings defined here
+├── census_transform.py       # The actual transformation logic
+├── data/
+│   └── census_data/
+│       └── diabetes_dataset.csv   # The dataset
+└── README.md
+```
 
-Your contributions will help improve the overall quality of the labs and benefit the entire MLOps community.
+---
 
-## Reference:
-The reading materials of this repo was collected from Coursera under the Creative Commons License.
+## How to Run This Lab
 
-## License
-This repository is licensed under the MIT License. For more details, please refer to the LICENSE file.
+> **Heads up for Mac users:** TFX doesn't install cleanly on macOS (especially Apple Silicon) or Python 3.12+. The easiest and most reliable way to run this is using Docker, which sets up the right environment automatically.
 
-**NEU-Specific Restriction:**  
-While the MIT License applies generally, the use, reproduction, or distribution of this content for the same or similar courses **within Northeastern University (NEU)** is **strictly prohibited** without prior written permission.
+### Option 1: Docker (Recommended)
 
-## 🌟 Star History
+**Step 1** — Make sure [Docker Desktop](https://www.docker.com/products/docker-desktop/) is installed and running.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=raminmohammadi/MLOps&type=Date)](https://star-history.com/#raminmohammadi/MLOps&Date)
+**Step 2** — Clone this repo and navigate to the lab folder:
+```bash
+git clone <your-repo-url>
+cd MLOps/Labs/Tensorflow_Labs/TFX_Labs/TFX_Lab1
+```
 
-## Contributors
-[![MLOPs contributors](https://contrib.rocks/image?repo=raminmohammadi/MLOps)](https://github.com/raminmohammadi/MLOps/graphs/contributors)
+**Step 3** — Run the script inside the official TFX Docker container:
+```bash
+docker run -it --rm \
+  -v $(pwd):/home/mlops \
+  -w /home/mlops \
+  tensorflow/tfx:1.15.0 \
+  python census_transform.py
+```
+
+This command mounts your local folder into the container and runs the script. Docker will download the TFX image the first time (~2.5GB), but it's cached after that.
+
+---
+
+### Option 2: Python Virtual Environment (Linux only)
+
+**Step 1** — Create a Python 3.10 virtual environment (3.10 is required — 3.11+ won't work):
+```bash
+python3.10 -m venv .venv310
+source .venv310/bin/activate
+```
+
+**Step 2** — Install dependencies:
+```bash
+pip install --upgrade pip setuptools wheel
+pip install tensorflow-transform==1.15.0
+```
+
+**Step 3** — Run the script:
+```bash
+python census_transform.py
+```
+
+---
+
+## Common Errors and Fixes
+
+| Error message | What it means | How to fix it |
+|---------------|--------------|---------------|
+| `ModuleNotFoundError: tensorflow_transform` | The virtual environment isn't activated | Run `source .venv/bin/activate` first, or use Docker |
+| `metadata-generation-failed` | Python version is too new (3.12 or 3.13) | Switch to Python 3.10 or use Docker |
+| `No matching distribution for tfx-bsl` | TFX doesn't support macOS ARM natively | Use Docker |
+
+---
+
+## Dependencies
+
+- `tensorflow >= 2.13`
+- `tensorflow-transform >= 1.13`
+- `apache-beam`
+- `tfx-bsl`
+
+If you're using Docker, you don't need to install any of these manually — they all come pre-installed in the `tensorflow/tfx:1.15.0` image.
+
+---
+
+## References
+
+- [TensorFlow Transform Docs](https://www.tensorflow.org/tfx/transform/get_started)
+- [Scikit-learn Diabetes Dataset](https://scikit-learn.org/stable/datasets/toy_dataset.html#diabetes-dataset)
+- [TFX Guide](https://www.tensorflow.org/tfx/guide)
