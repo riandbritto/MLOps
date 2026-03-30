@@ -76,6 +76,14 @@ I configured workflows inside `.github/workflows/` so that both pytest and unitt
 Initially, I faced issues with running tests from the wrong directory and incorrect folder structure. I resolved this by ensuring I was inside the `Lab1` folder and placing workflow files in the correct `.github/workflows/` directory.
 
 ---
+## GitHub Actions Result
+
+After setting up the workflows, I verified that the pipelines were triggered successfully on pushing code to the repository. Both pytest and unittest workflows ran without errors, confirming that the CI/CD setup is working correctly.
+
+Below is a screenshot showing the successful execution of GitHub Actions:
+
+![GitHub Actions Success](images/actions_success.png)
+
 
 ## Conclusion
 
