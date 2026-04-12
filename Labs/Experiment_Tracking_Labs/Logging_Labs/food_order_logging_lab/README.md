@@ -52,9 +52,13 @@ This implementation is customized and not directly copied from the original lab 
 
 ##  Project Structure
 food_order_logging_lab/
-├── app.py # Main Python application
-├── app.log # Generated log file after execution
-├── README.md # Documentation
+├── app.py
+├── app.log
+├── README.md
+└── images/
+    ├── console_output.png
+    ├── log_output.png
+    └── receipt_output.png
 
 
 
