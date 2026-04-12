@@ -56,23 +56,7 @@ food_order_logging_lab/
 ├── app.log # Generated log file after execution
 ├── README.md # Documentation
 
-##  How to Run the Lab
 
-###  Prerequisites
-- Python 3 installed
-
----
-
-###  Steps to Execute
-
-1. Clone the repository:
-
-```bash
-git clone <your-github-repo-link>
-Navigate to the lab folder:
-cd Labs/Experiment_Tracking_Labs/Logging_Labs/food_order_logging_lab
-Run the application:
-python app.py
 
 ### Key Learnings
 
