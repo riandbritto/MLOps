@@ -58,6 +58,22 @@ food_order_logging_lab/
 
 
 
+##  Screenshots
+
+### 🖥️ Console Output
+![Console Output](images/console_output.png)
+
+---
+
+### 📄 Log File Output
+![Log Output](images/log_output.png)
+
+---
+
+### 🧾 Receipt Output
+![Receipt Output](images/receipt_output.png) 
+
+
 ### Key Learnings
 
 Logging is more powerful than print statements
@@ -65,5 +81,6 @@ Helps track application flow step-by-step
 Makes debugging easier with structured logs
 Essential for real-world applications and production systems
 Improves code maintainability and readability
+
 
 Author: Rian Renold Dbritto
