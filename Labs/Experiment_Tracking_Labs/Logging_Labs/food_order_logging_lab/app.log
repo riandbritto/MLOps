@@ -1,0 +1,21 @@
+2026-04-12 15:21:31,604 - food_order_app - INFO - Food order application started
+2026-04-12 15:21:31,606 - food_order_app - DEBUG - Validating order: item=Pizza, quantity=2
+2026-04-12 15:21:31,606 - food_order_app - INFO - Order validated successfully for item: Pizza
+2026-04-12 15:21:31,608 - food_order_app - DEBUG - Calculating total: price=12, quantity=2
+2026-04-12 15:21:31,608 - food_order_app - INFO - Total price calculated successfully: 24
+2026-04-12 15:21:31,609 - food_order_app - DEBUG - Processing payment: total_amount=24, payment_amount=30
+2026-04-12 15:21:31,609 - food_order_app - INFO - Payment processed successfully. Balance: 6
+2026-04-12 15:21:31,610 - food_order_app - DEBUG - Generating receipt
+2026-04-12 15:21:31,610 - food_order_app - INFO - Receipt generated successfully
+2026-04-12 15:21:31,611 - food_order_app - DEBUG - Validating order: item=Burger, quantity=0
+2026-04-12 15:21:31,611 - food_order_app - WARNING - Invalid quantity entered for Burger: 0
+2026-04-12 15:21:31,613 - food_order_app - DEBUG - Calculating total: price=15, quantity=2
+2026-04-12 15:21:31,613 - food_order_app - INFO - Total price calculated successfully: 30
+2026-04-12 15:21:31,614 - food_order_app - DEBUG - Processing payment: total_amount=30, payment_amount=10
+2026-04-12 15:21:31,615 - food_order_app - ERROR - Payment processing failed
+Traceback (most recent call last):
+  File "/tmp/ipykernel_1742/1972853628.py", line 60, in process_payment
+    raise ValueError("Insufficient payment amount")
+ValueError: Insufficient payment amount
+2026-04-12 15:21:31,616 - food_order_app - CRITICAL - Demo critical log: end of application test
+2026-04-12 15:21:31,616 - food_order_app - INFO - Food order application finished
